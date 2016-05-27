@@ -1,12 +1,13 @@
-var gulp = require( 'gulp' ),
+var gulp        = require( 'gulp' ),
 	imageResize = require( 'gulp-image-resize' ),
-	rename = require( 'gulp-rename' ),
-	parallel = require( 'concurrent-transform' ),
-	del = require( 'del' ),
-	dest = require( 'gulp-dest' ),
-	pipes = require( 'gulp-pipes' );
+	rename      = require( 'gulp-rename' ),
+	parallel    = require( 'concurrent-transform' ),
+	del         = require( 'del' ),
+	pipes       = require( 'gulp-pipes' ),
 
-var resizeImageTasks = [];
+	resizeImageTasks = [],
+
+	sizes = [ 75, 150, 300, 450 ];
 
 function clean() {
 
@@ -14,7 +15,7 @@ function clean() {
 
 }
 
-[ 150, 500 ].forEach( function( size ) {
+sizes.forEach( function( size ) {
 
 	var resizeImageTask = 'resize_' + size;
 
@@ -22,7 +23,7 @@ function clean() {
 
 		return gulp
 
-			.src( "src/**/*.{jpg,png}" )
+			.src( "src/**/*.jpg" )
 
 			.pipe( parallel( imageResize({
 				width:  size,
@@ -32,19 +33,19 @@ function clean() {
 
 			.pipe( pipes.image.optimize() )
 
-			.pipe( dest('build/:name.jpg') )
-
 			.pipe( rename( function( path ){
 
 				path.basename += '-' + size;
-				path.dirname += '/' + size;
+				path.dirname = '../build/' + size;
 
 			} ) )
 
 			.pipe( gulp.dest( './build' ) );
+
 	});
 
-	resizeImageTasks.push(resizeImageTask);
+	resizeImageTasks.push( resizeImageTask );
+
 });
 
 gulp.task( 'resize', gulp.series( clean, gulp.parallel( resizeImageTasks ) ) );
