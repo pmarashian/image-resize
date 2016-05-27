@@ -3,8 +3,10 @@ var gulp = require( 'gulp' ),
 	rename = require( 'gulp-rename' ),
 	parallel = require( 'concurrent-transform' ),
 	del = require( 'del' ),
-	minimist = require( 'minimist' ),
-	dest = require( 'gulp-dest' );
+	dest = require( 'gulp-dest' ),
+	pipes = require( 'gulp-pipes' );
+
+var resizeImageTasks = [];
 
 function clean() {
 
@@ -12,81 +14,38 @@ function clean() {
 
 }
 
-function resizeMedium() {
+[ 150, 500 ].forEach( function( size ) {
 
-	return gulp
-		.src( "src/*.{jpg,png}" )
+	var resizeImageTask = 'resize_' + size;
 
-		.pipe( imageResize({
-			width: 500,
-			quality: 75
-		} ) )
+	gulp.task( resizeImageTask, function() {
 
-		.pipe( rename( function (path) {
+		return gulp
 
-			return path.basename += "-500";
+			.src( "src/**/*.{jpg,png}" )
 
-		}))
+			.pipe( parallel( imageResize({
+				width:  size,
+				upscale: false,
+				quality: 75
+			}) ) )
 
-		.pipe( gulp.dest( 'build/medium' ) );
+			.pipe( pipes.image.optimize() )
 
-}
+			.pipe( dest('build/:name.jpg') )
 
-function resizeThumbnail() {
+			.pipe( rename( function( path ){
 
-	return gulp
-		.src( "src/*.{jpg,png}" )
+				path.basename += '-' + size;
+				path.dirname += '/' + size;
 
-		.pipe( imageResize({
-			width: 150,
-			quality: 75
-		} ) )
+			} ) )
 
-			.pipe( rename( function (path) {
+			.pipe( gulp.dest( './build' ) );
+	});
 
-				return path.basename += "-150";
+	resizeImageTasks.push(resizeImageTask);
+});
 
-			}))
-
-			.pipe( gulp.dest( 'build/thumbnail' ) );
-
-}
-
-function resize() {
-
-	return gulp
-		.src( "src/**/*.{jpg,png}" )
-
-		.pipe( parallel( imageResize({
-			width: 500,
-			quality: 75
-		} ) ) )
-
-		.pipe( rename( function (path) {
-
-			return path.basename += "-500";
-
-		}))
-
-		.pipe( gulp.dest( 'build/medium' ) )
-
-		.pipe( parallel( imageResize({
-			width: 150,
-			quality: 75
-		} ) ) )
-
-		.pipe( rename( function (path) {
-
-			return path.basename += "-150";
-
-		}))
-
-		.pipe( gulp.dest( 'build/thumbnail' ) );
-
-}
-
-var test = gulp.series( clean, gulp.series( resizeMedium, resizeThumbnail ) );
-
-gulp.task( 'resize', gulp.series( clean, resize ) );
+gulp.task( 'resize', gulp.series( clean, gulp.parallel( resizeImageTasks ) ) );
 gulp.task( 'clean', clean );
-gulp.task( 'test', test );
