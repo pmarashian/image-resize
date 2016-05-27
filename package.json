@@ -1,0 +1,23 @@
+{
+  "name": "image-resize",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/gulp/bin/gulp.js test",
+    "clean": "./node_modules/gulp/bin/gulp.js clean",
+    "run": "./node_modules/gulp/bin/gulp.js resize"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrent-transform": "^1.0.0",
+    "del": "^2.2.0",
+    "gulp": "gulpjs/gulp#4.0",
+    "gulp-dest": "^0.2.3",
+    "gulp-image-resize": "^0.8.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-util": "^3.0.7",
+    "through2": "^2.0.1"
+  }
+}
