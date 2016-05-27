@@ -10,19 +10,29 @@ var gulp        = require( 'gulp' ),
 	argv             = minimist( process.argv.slice(2) ),
 	resizeImageTasks = [],
 	sizes            = [],
-	argumentSizes    = [];
+	argumentSizes    = [],
+
+	options = {
+		quality: 75
+	},
+
+	logs = [];
 
 const chalk = require('chalk');
 
 if( typeof argv.size === 'undefined' ) {
 
-	gutil.log( chalk.bold.red( 'No sizes given.  Use "npm run resize -- --size [int]"' ) );
+	logs.push( chalk.bold.red( 'No sizes given.  Use "npm run resize -- --size [int]"' ) );
 
 } else {
 
 	if( typeof argv.size == 'number' ) {
 
 		argumentSizes.push( argv.size );
+
+	} else if ( typeof argv.size == 'boolean' ) {
+
+		logs.push( chalk.bold.red( 'No sizes given.  Use "npm run resize -- --size [int]"' ) );
 
 	} else {
 
@@ -38,11 +48,21 @@ if( typeof argv.size === 'undefined' ) {
 
 		} else {
 
-			gutil.log( chalk.bold.red( size + ' is not a valid size' ) );
+			logs.push( chalk.bold.red( size + ' is not a valid size' ) );
 
 		}
 
 	});
+
+}
+
+if( typeof argv.quality !== 'undefined' ) {
+
+	if( typeof argv.quality === 'number' ) {
+
+		options.quality = argv.quality;
+
+	}
 
 }
 
@@ -53,6 +73,8 @@ function clean() {
 }
 
 sizes.forEach( function( size ) {
+
+	logs.push( chalk.bold.red( 'Running resize with size = ' + size ) );
 
 	var resizeImageTask = 'resize_' + size;
 
@@ -65,7 +87,7 @@ sizes.forEach( function( size ) {
 			.pipe( parallel( imageResize({
 				width:  size,
 				upscale: false,
-				quality: 75
+				quality: options.quality
 			}) ) )
 
 			.pipe( pipes.image.optimize() )
@@ -85,7 +107,19 @@ sizes.forEach( function( size ) {
 
 });
 
-var resizeTasks = [ clean ];
+function log(  cb ) {
+
+	logs.forEach( function( message ) {
+
+		gutil.log( message );
+
+	} );
+
+	cb();
+
+}
+
+var resizeTasks = [ log, clean ];
 
 if( resizeImageTasks.length ) {
 
